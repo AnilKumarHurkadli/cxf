@@ -24,8 +24,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.jws.WebService;
-
+import jakarta.jws.WebService;
 import org.apache.cxf.testutil.common.EmbeddedJMSBrokerLauncher;
 
 import org.junit.BeforeClass;
@@ -36,10 +35,11 @@ import static org.junit.Assert.assertTrue;
  * Tests the addition of WS-Addressing Message Addressing Properties
  * in the non-decoupled case.
  */
+//TODO: This test needs jms jakarta implementation is ready
 public class DecoupledJMSTest extends MAPTestBase {
     static final String PORT = allocatePort(DecoupledJMSTest.class);
     private static final String ADDRESS = "jms:jndi:dynamicQueues/testqueue0001?"
-        + "jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory"
+        + "jndiInitialContextFactory=org.apache.activemq.artemis.jndi.ActiveMQInitialContextFactory"
         + "&jndiConnectionFactoryName=ConnectionFactory&jndiURL=tcp://localhost:"
         + EmbeddedJMSBrokerLauncher.PORT;
 

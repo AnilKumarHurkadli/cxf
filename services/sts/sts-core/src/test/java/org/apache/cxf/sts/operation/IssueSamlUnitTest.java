@@ -20,21 +20,17 @@ package org.apache.cxf.sts.operation;
 
 import java.security.Principal;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.helpers.DOMUtils;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
 import org.apache.cxf.message.MessageImpl;
@@ -78,7 +74,6 @@ import org.apache.wss4j.dom.engine.WSSConfig;
 import org.apache.wss4j.dom.handler.RequestData;
 import org.apache.wss4j.dom.message.WSSecEncryptedKey;
 import org.apache.wss4j.dom.saml.WSSSAMLKeyInfoProcessor;
-import org.apache.wss4j.dom.util.WSSecurityUtil;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -645,7 +640,11 @@ public class IssueSamlUnitTest {
         // Now add Entropy
         BinarySecretType binarySecretType = new BinarySecretType();
         binarySecretType.setType(STSConstants.NONCE_TYPE);
-        binarySecretType.setValue(WSSecurityUtil.generateNonce(256 / 8));
+
+        Random random = new Random();
+        byte[] secret = new byte[256 / 8];
+        random.nextBytes(secret);
+        binarySecretType.setValue(secret);
         JAXBElement<BinarySecretType> binarySecretTypeJaxb =
             new JAXBElement<BinarySecretType>(
                 QNameConstants.BINARY_SECRET, BinarySecretType.class, binarySecretType
@@ -737,7 +736,11 @@ public class IssueSamlUnitTest {
         // Now add Entropy
         BinarySecretType binarySecretType = new BinarySecretType();
         binarySecretType.setType(STSConstants.SYMMETRIC_KEY_TYPE);
-        binarySecretType.setValue(WSSecurityUtil.generateNonce(256 / 8));
+
+        Random random = new Random();
+        byte[] secret = new byte[256 / 8];
+        random.nextBytes(secret);
+        binarySecretType.setValue(secret);
         JAXBElement<BinarySecretType> binarySecretTypeJaxb =
             new JAXBElement<BinarySecretType>(
                 QNameConstants.BINARY_SECRET, BinarySecretType.class, binarySecretType
@@ -886,7 +889,7 @@ public class IssueSamlUnitTest {
         data.setWsDocInfo(new WSDocInfo(assertion.getOwnerDocument()));
 
         assertionWrapper.parseSubject(
-            new WSSSAMLKeyInfoProcessor(data), data.getSigVerCrypto(), data.getCallbackHandler()
+            new WSSSAMLKeyInfoProcessor(data), data.getSigVerCrypto()
         );
 
         SAMLKeyInfo samlKeyInfo = assertionWrapper.getSubjectKeyInfo();

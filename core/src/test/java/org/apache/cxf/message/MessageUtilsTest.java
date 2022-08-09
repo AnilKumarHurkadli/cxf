@@ -19,6 +19,7 @@
 package org.apache.cxf.message;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Optional;
 
 import javax.xml.namespace.QName;
@@ -32,8 +33,10 @@ import org.apache.cxf.service.model.OperationInfo;
 
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class MessageUtilsTest {
@@ -79,5 +82,15 @@ public class MessageUtilsTest {
         message.setExchange(new ExchangeImpl());
 
         assertFalse(MessageUtils.getTargetMethod(message).isPresent());
+    }
+
+    @Test
+    public void getContextualIntegers() {
+        Message message = new MessageImpl();
+        message.put("key1", "1, 2,invalid,3");
+        assertThat(MessageUtils.getContextualIntegers(message, "key1", Arrays.asList(0)),
+            contains(1, 2, 3));
+        assertThat(MessageUtils.getContextualIntegers(message, "invalid-key", Arrays.asList(0, 1)), 
+            contains(0, 1));
     }
 }

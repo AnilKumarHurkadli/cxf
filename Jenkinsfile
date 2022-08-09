@@ -33,7 +33,7 @@ pipeline {
         axes {
           axis {
             name 'JAVA_VERSION'
-            values 'jdk_1.8_latest', 'jdk_11_latest', 'jdk_17_latest'
+            values 'jdk_17_latest', 'jdk_18_latest'
           }
         }
         stages {
@@ -63,7 +63,7 @@ pipeline {
               }
               /* stage('Build Source & JavaDoc') {
               when {
-                branch 'master'
+                branch 'main'
               }
               steps {
                 dir("local-snapshots-dir/") {
@@ -74,7 +74,7 @@ pipeline {
             }
             stage('Deploy Snapshot') {
               when {
-                branch 'master'
+                branch 'main'
               }
               steps {
                 withCredentials([file(credentialsId: 'lukaszlenart-repository-access-token', variable: 'CUSTOM_SETTINGS')]) {
@@ -84,7 +84,7 @@ pipeline {
             }
             stage('Code Quality') {
               when {
-                branch 'master'
+                branch 'main'
               }
               steps {
                 withCredentials([string(credentialsId: 'asf-cxf-sonarcloud', variable: 'SONARCLOUD_TOKEN')]) {

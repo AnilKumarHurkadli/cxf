@@ -20,12 +20,11 @@ package org.apache.cxf.osgi.itests.jaxrs;
 
 import java.io.InputStream;
 
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import org.apache.cxf.helpers.JavaUtils;
 import org.apache.cxf.osgi.itests.AbstractServerActivator;
 import org.apache.cxf.osgi.itests.CXFOSGiTestSupport;
@@ -53,7 +52,7 @@ import static org.ops4j.pax.exam.karaf.options.KarafDistributionOption.logLevel;
 @ExamReactorStrategy(PerClass.class)
 public class JaxRsServiceTest extends CXFOSGiTestSupport {
 
-    private static final String BASE_URL = "http://localhost:8181/cxf/jaxrs/bookstore";
+    private static final String BASE_URL = "http://localhost:" + PORT + "/cxf/jaxrs/bookstore";
 
     private final WebTarget wt = ClientBuilder.newClient().target(BASE_URL);
 
@@ -109,6 +108,7 @@ public class JaxRsServiceTest extends CXFOSGiTestSupport {
             cxfBaseConfig(),
             features(cxfUrl, "cxf-core", "cxf-wsdl", "cxf-jaxrs", "cxf-bean-validation-core", "cxf-bean-validation"),
             logLevel(LogLevel.INFO),
+            testUtils(),
             provision(serviceBundle())
         );
     }
@@ -133,5 +133,4 @@ public class JaxRsServiceTest extends CXFOSGiTestSupport {
                 .build(TinyBundles.withBnd());
         }
     }
-
 }

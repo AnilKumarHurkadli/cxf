@@ -26,8 +26,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.core.Configuration;
-
+import jakarta.ws.rs.RuntimeType;
+import jakarta.ws.rs.core.Configuration;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
@@ -96,9 +96,14 @@ public final class MicroProfileClientProviderFactory extends ProviderFactory {
     protected void setProviders(boolean custom, boolean busGlobal, Object... providers) {
         List<ProviderInfo<?>> theProviders =
                 prepareProviders(custom, busGlobal, providers, null);
-        super.setCommonProviders(theProviders);
+        super.setCommonProviders(theProviders, RuntimeType.CLIENT);
         for (ProviderInfo<?> provider : theProviders) {
             Class<?> providerCls = ClassHelper.getRealClass(getBus(), provider.getProvider());
+
+            // Check if provider is constrained to client
+            if (!constrainedTo(providerCls, RuntimeType.CLIENT)) {
+                continue;
+            }
 
             if (ResponseExceptionMapper.class.isAssignableFrom(providerCls)) {
                 addProviderToList(responseExceptionMappers, provider);

@@ -33,9 +33,9 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.AccountException;
 import javax.security.auth.login.FailedLoginException;
 import javax.security.auth.login.LoginContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.Base64Exception;
 import org.apache.cxf.common.util.Base64Utility;
@@ -72,12 +72,13 @@ public class ServiceListJAASAuthenticator {
         try {
             Subject subject = new Subject();
             LoginContext loginContext = new LoginContext(realm, subject, new CallbackHandler() {
-                public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
+                public void handle(Callback[] callbacks) throws UnsupportedCallbackException {
                     for (int i = 0; i < callbacks.length; i++) {
                         if (callbacks[i] instanceof NameCallback) {
                             ((NameCallback)callbacks[i]).setName(username);
                         } else if (callbacks[i] instanceof PasswordCallback) {
-                            ((PasswordCallback)callbacks[i]).setPassword(password.toCharArray());
+                            ((PasswordCallback)callbacks[i]).setPassword(
+                                password == null ? null : password.toCharArray());
                         } else {
                             throw new UnsupportedCallbackException(callbacks[i]);
                         }

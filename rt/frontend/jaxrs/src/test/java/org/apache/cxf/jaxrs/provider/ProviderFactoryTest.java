@@ -34,32 +34,34 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.annotation.Priority;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Feature;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.ParamConverter;
-import javax.ws.rs.ext.ParamConverterProvider;
-import javax.ws.rs.ext.ReaderInterceptor;
-import javax.ws.rs.ext.WriterInterceptor;
-import javax.ws.rs.ext.WriterInterceptorContext;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.validation.Schema;
 
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.ConstrainedTo;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.RuntimeType;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Feature;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.ext.ContextResolver;
+import jakarta.ws.rs.ext.ExceptionMapper;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.MessageBodyWriter;
+import jakarta.ws.rs.ext.ParamConverter;
+import jakarta.ws.rs.ext.ParamConverterProvider;
+import jakarta.ws.rs.ext.ReaderInterceptor;
+import jakarta.ws.rs.ext.WriterInterceptor;
+import jakarta.ws.rs.ext.WriterInterceptorContext;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.endpoint.Endpoint;
@@ -85,13 +87,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class ProviderFactoryTest {
@@ -529,14 +531,16 @@ public class ProviderFactoryTest {
 
     @Test
     public void testExceptionMappersHierarchy2() throws Exception {
+        Message m = new MessageImpl();
+        m.put("default.wae.mapper.least.specific", false);
         ServerProviderFactory pf = ServerProviderFactory.getInstance();
 
         TestRuntimeExceptionMapper rm = new TestRuntimeExceptionMapper();
         pf.registerUserProvider(rm);
         ExceptionMapper<WebApplicationException> em =
-            pf.createExceptionMapper(WebApplicationException.class, new MessageImpl());
+            pf.createExceptionMapper(WebApplicationException.class, m);
         assertTrue(em instanceof WebApplicationExceptionMapper);
-        assertSame(rm, pf.createExceptionMapper(RuntimeException.class, new MessageImpl()));
+        assertSame(rm, pf.createExceptionMapper(RuntimeException.class, m));
 
         WebApplicationExceptionMapper wm = new WebApplicationExceptionMapper();
         pf.registerUserProvider(wm);
@@ -547,7 +551,6 @@ public class ProviderFactoryTest {
     @Test
     public void testExceptionMappersHierarchy3() throws Exception {
         Message m = new MessageImpl();
-        m.put("default.wae.mapper.least.specific", true);
         ServerProviderFactory pf = ServerProviderFactory.getInstance();
 
         TestRuntimeExceptionMapper rm = new TestRuntimeExceptionMapper();
@@ -1526,6 +1529,32 @@ public class ProviderFactoryTest {
         Object mapperResponse4 = pf.createExceptionMapper(RuntimeExceptionBB.class, new MessageImpl());
         assertSame(runtimeExceptionBMapper, mapperResponse4);
     }
+
+    @Test
+    public void testProvidersWithConstraints() {
+        ProviderFactory pf = ServerProviderFactory.getInstance();
+        
+        @ConstrainedTo(RuntimeType.SERVER)
+        class ServerWildcardReader extends WildcardReader {
+            
+        }
+        
+        @ConstrainedTo(RuntimeType.CLIENT)
+        class ClientWildcardReader extends WildcardReader {
+            
+        }
+
+        final ServerWildcardReader reader = new ServerWildcardReader();
+        pf.registerUserProvider(reader);
+        
+        List<ProviderInfo<MessageBodyReader<?>>> readers = pf.getMessageReaders();
+        assertEquals(10, readers.size());
+        assertSame(reader, readers.get(7).getProvider());
+
+        pf.registerUserProvider(new ClientWildcardReader());
+        assertEquals(10, pf.getMessageReaders().size());
+    }
+
     private static class RuntimeExceptionA extends RuntimeException {
         private static final long serialVersionUID = 1L;
     }

@@ -48,42 +48,43 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.container.ResourceInfo;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Configuration;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.PathSegment;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Providers;
-import javax.ws.rs.ext.ReaderInterceptor;
-import javax.ws.rs.ext.ReaderInterceptorContext;
-import javax.ws.rs.ext.WriterInterceptor;
-import javax.ws.rs.ext.WriterInterceptorContext;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 
+import jakarta.activation.DataSource;
+import jakarta.ws.rs.ClientErrorException;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.container.ResourceInfo;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.Configuration;
+import jakarta.ws.rs.core.Cookie;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.PathSegment;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.StreamingOutput;
+import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.ext.ContextResolver;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.MessageBodyWriter;
+import jakarta.ws.rs.ext.Providers;
+import jakarta.ws.rs.ext.ReaderInterceptor;
+import jakarta.ws.rs.ext.ReaderInterceptorContext;
+import jakarta.ws.rs.ext.WriterInterceptor;
+import jakarta.ws.rs.ext.WriterInterceptorContext;
 import org.apache.cxf.common.i18n.BundleUtils;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.PackageUtils;
@@ -103,10 +104,7 @@ import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.apache.cxf.jaxrs.ext.MessageContextImpl;
 import org.apache.cxf.jaxrs.ext.ProtocolHeaders;
 import org.apache.cxf.jaxrs.ext.ProtocolHeadersImpl;
-import org.apache.cxf.jaxrs.ext.multipart.Attachment;
-import org.apache.cxf.jaxrs.ext.multipart.InputStreamDataSource;
 import org.apache.cxf.jaxrs.ext.multipart.MultipartBody;
-import org.apache.cxf.jaxrs.ext.xml.XMLSource;
 import org.apache.cxf.jaxrs.impl.AsyncResponseImpl;
 import org.apache.cxf.jaxrs.impl.ContainerRequestContextImpl;
 import org.apache.cxf.jaxrs.impl.ContainerResponseContextImpl;
@@ -169,14 +167,18 @@ public final class JAXRSUtils {
     private static final ResourceBundle BUNDLE = BundleUtils.getBundle(JAXRSUtils.class);
     private static final String PATH_SEGMENT_SEP = "/";
     private static final String REPORT_FAULT_MESSAGE_PROPERTY = "org.apache.cxf.jaxrs.report-fault-message";
-    private static final String NO_CONTENT_EXCEPTION = "javax.ws.rs.core.NoContentException";
+    private static final String NO_CONTENT_EXCEPTION = "jakarta.ws.rs.core.NoContentException";
     private static final String HTTP_CHARSET_PARAM = "charset";
     private static final Annotation[] EMPTY_ANNOTATIONS = new Annotation[0];
     private static final Set<Class<?>> STREAMING_OUT_TYPES = new HashSet<>(
         Arrays.asList(InputStream.class, Reader.class, StreamingOutput.class));
-    private static final Set<Class<?>> STREAMING_LIKE_OUT_TYPES = new HashSet<>(
-        Arrays.asList(XMLSource.class, InputStreamDataSource.class, 
-            MultipartBody.class, Attachment.class));
+    private static final Set<String> STREAMING_LIKE_OUT_TYPES = new HashSet<>(
+        Arrays.asList(
+            "org.apache.cxf.jaxrs.ext.xml.XMLSource", 
+            "org.apache.cxf.jaxrs.ext.multipart.InputStreamDataSource", 
+            "org.apache.cxf.jaxrs.ext.multipart.MultipartBody", 
+            "org.apache.cxf.jaxrs.ext.multipart.Attachment"
+        ));
     private static final Set<String> REACTIVE_OUT_TYPES = new HashSet<>(
         Arrays.asList(
             // Reactive Streams
@@ -214,7 +216,7 @@ public final class JAXRSUtils {
      */
     public static boolean isStreamingLikeOutType(Class<?> cls, Type type) {
         if (cls != null && (isStreamingOutType(cls) 
-                || STREAMING_LIKE_OUT_TYPES.contains(cls) 
+                || STREAMING_LIKE_OUT_TYPES.contains(cls.getName()) 
                 || REACTIVE_OUT_TYPES.contains(cls.getName()))) {
             return true;
         }
@@ -230,7 +232,7 @@ public final class JAXRSUtils {
         
         if (type instanceof Class) {
             final Class<?> typeCls = (Class<?>)type;
-            return isStreamingOutType(typeCls) || STREAMING_LIKE_OUT_TYPES.contains(typeCls);
+            return isStreamingOutType(typeCls) || STREAMING_LIKE_OUT_TYPES.contains(typeCls.getName());
         }
         
         return false;
@@ -239,7 +241,8 @@ public final class JAXRSUtils {
     public static boolean isStreamingOutType(Class<?> type) {
         return STREAMING_OUT_TYPES.contains(type) 
             || Closeable.class.isAssignableFrom(type)
-            || Source.class.isAssignableFrom(type);
+            || Source.class.isAssignableFrom(type)
+            || DataSource.class.isAssignableFrom(type);
     }
 
     public static List<PathSegment> getPathSegments(String thePath, boolean decode) {
@@ -507,7 +510,7 @@ public final class JAXRSUtils {
         int pathMatched = 0;
         int methodMatched = 0;
         int consumeMatched = 0;
-
+        
         List<OperationResourceInfo> finalPathSubresources = null;
         for (Map.Entry<ClassResourceInfo, MultivaluedMap<String, String>> rEntry : matchedResources.entrySet()) {
             ClassResourceInfo resource = rEntry.getKey();
@@ -558,7 +561,12 @@ public final class JAXRSUtils {
                 LOG.fine(matchMessageLogSupplier(ori, path, httpMethod, requestType, acceptContentTypes, added));
             }
         }
-        if (finalPathSubresources != null && pathMatched > 0
+        
+        // We may get several matching candidates with different HTTP methods which match subresources
+        // and resources. Before excluding subresources, let us make sure we have at least one matching
+        // HTTP method candidate.
+        boolean isOptions = HttpMethod.OPTIONS.equalsIgnoreCase(httpMethod);
+        if (finalPathSubresources != null && (methodMatched > 0 || isOptions)
             && !MessageUtils.getContextualBoolean(message, KEEP_SUBRESOURCE_CANDIDATES, false)) {
             for (OperationResourceInfo key : finalPathSubresources) {
                 candidateList.remove(key);
@@ -1169,7 +1177,7 @@ public final class JAXRSUtils {
             }
         }
 
-        if (decode) {
+        if (decode && !MessageUtils.getContextualBoolean(m, FormUtils.FORM_PARAM_MAP_DECODED, false)) {
             List<String> values = params.get(key);
             if (values != null) {
                 values = values.stream().map(value -> HttpUtils.urlDecode(value, enc)).collect(Collectors.toList());
@@ -1261,7 +1269,7 @@ public final class JAXRSUtils {
         }
         Object instance;
         try {
-            instance = clazz.newInstance();
+            instance = clazz.getDeclaredConstructor().newInstance();
         } catch (Throwable t) {
             throw ExceptionUtils.toInternalServerErrorException(t, null);
         }

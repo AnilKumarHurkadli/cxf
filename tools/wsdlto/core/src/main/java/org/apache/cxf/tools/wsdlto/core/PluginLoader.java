@@ -34,12 +34,12 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import javax.xml.stream.XMLStreamException;
 
 import org.w3c.dom.Document;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.common.i18n.Message;
 import org.apache.cxf.common.jaxb.JAXBUtils;
@@ -267,7 +267,7 @@ public final class PluginLoader {
             for (Generator generator : frontend.getGenerators().getGenerator()) {
                 fullClzName = getGeneratorClass(frontend, generator);
                 Class<?> clz = ClassLoaderUtils.loadClass(fullClzName, this.getClass());
-                generators.add((FrontEndGenerator)clz.newInstance());
+                generators.add((FrontEndGenerator)clz.getDeclaredConstructor().newInstance());
             }
         } catch (Exception e) {
             Message msg = new Message("FRONTEND_PROFILE_LOAD_FAIL", LOG, fullClzName);
@@ -282,7 +282,7 @@ public final class PluginLoader {
         final FrontEndProfile profile;
         try {
             Class<?> clz = ClassLoaderUtils.loadClass(fullClzName, this.getClass());
-            profile = (FrontEndProfile)clz.newInstance();
+            profile = (FrontEndProfile)clz.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             Message msg = new Message("FRONTEND_PROFILE_LOAD_FAIL", LOG, fullClzName);
             LOG.log(Level.SEVERE, msg.toString());
@@ -294,7 +294,8 @@ public final class PluginLoader {
     private Processor loadProcessor(String fullClzName) {
         final Processor processor;
         try {
-            processor = (Processor) ClassLoaderUtils.loadClass(fullClzName, getClass()).newInstance();
+            processor = (Processor) ClassLoaderUtils.loadClass(fullClzName, getClass())
+                .getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             Message msg = new Message("LOAD_PROCESSOR_FAILED", LOG, fullClzName);
             LOG.log(Level.SEVERE, msg.toString());
@@ -358,7 +359,7 @@ public final class PluginLoader {
         final AbstractWSDLBuilder builder;
         try {
             builder = (AbstractWSDLBuilder) ClassLoaderUtils
-                .loadClass(fullClzName, getClass()).newInstance();
+                .loadClass(fullClzName, getClass()).getDeclaredConstructor().newInstance();
 
         } catch (Exception e) {
             Message msg = new Message("LOAD_PROCESSOR_FAILED", LOG, fullClzName);
@@ -411,7 +412,7 @@ public final class PluginLoader {
         final DataBindingProfile profile;
         try {
             profile = (DataBindingProfile)ClassLoaderUtils.loadClass(fullClzName,
-                                                                     getClass()).newInstance();
+                                                                     getClass()).getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             Message msg = new Message("DATABINDING_PROFILE_LOAD_FAIL", LOG, fullClzName);
             LOG.log(Level.SEVERE, msg.toString());

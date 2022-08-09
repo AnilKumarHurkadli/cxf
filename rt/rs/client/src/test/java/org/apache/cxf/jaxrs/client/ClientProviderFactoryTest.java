@@ -19,9 +19,10 @@
 
 package org.apache.cxf.jaxrs.client;
 
-import javax.ws.rs.ext.ParamConverter;
-import javax.ws.rs.ext.ParamConverterProvider;
-
+import jakarta.ws.rs.ConstrainedTo;
+import jakarta.ws.rs.RuntimeType;
+import jakarta.ws.rs.ext.ParamConverter;
+import jakarta.ws.rs.ext.ParamConverterProvider;
 import org.apache.cxf.Bus;
 import org.apache.cxf.bus.extension.ExtensionManagerBus;
 import org.apache.cxf.jaxrs.provider.ProviderFactory;
@@ -48,4 +49,27 @@ public class ClientProviderFactoryTest {
         assertSame(h2, hp);
     }
 
+    @Test
+    public void testParameterHandlerProviderWithConstraints() throws Exception {
+        final Bus bus = new ExtensionManagerBus();
+        final ProviderFactory pf = ClientProviderFactory.createInstance(bus);
+
+        @ConstrainedTo(RuntimeType.SERVER)
+        class ServerParameterHandler extends CustomerParameterHandler {
+            // Server parameter handler
+        }
+
+        @ConstrainedTo(RuntimeType.CLIENT)
+        class ClientParameterHandler extends CustomerParameterHandler {
+            // Client parameter handler
+        }
+
+        ParamConverterProvider h = new ServerParameterHandler();
+        ParamConverterProvider hp = new ClientParameterHandler();
+        pf.registerUserProvider(h);
+        pf.registerUserProvider(hp);
+        ParamConverter<Customer> h2 = pf.createParameterHandler(Customer.class, Customer.class, null,
+                                                                new MessageImpl());
+        assertSame(h2, hp);
+    }
 }

@@ -561,7 +561,10 @@ public class AsyncHTTPConduit extends URLConnectionHTTPConduit {
                                     setSSLSession(sslsession);
                                 }
                             });
+                    // See please https://issues.apache.org/jira/browse/HTTPASYNC-168, the attribute names
+                    // are case-sensitive.
                     ctx.setAttribute("http.iosession-factory-registry", regBuilder.build());
+                    ctx.setAttribute("http.ioSession-factory-registry", regBuilder.build());
                 } catch (GeneralSecurityException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -673,7 +676,7 @@ public class AsyncHTTPConduit extends URLConnectionHTTPConduit {
         }
 
         protected void handleResponseAsync() throws IOException {
-            isAsync = true;
+            
         }
 
         protected void closeInputStream() throws IOException {

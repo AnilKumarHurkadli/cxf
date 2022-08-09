@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.5.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
         <relativePath>../../parent/pom.xml</relativePath>
     </parent>
     <groupId>org.apache.cxf.osgi.itests</groupId>
@@ -58,7 +58,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-client</artifactId>
+            <artifactId>artemis-jakarta-client</artifactId>
         </dependency>
 
         <dependency>
@@ -91,10 +91,10 @@
         </dependency>
         <dependency>
             <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-karaf</artifactId>
+            <artifactId>artemis-features</artifactId>
             <type>xml</type>
-            <version>${cxf.activemq.version}</version>
-            <classifier>features-core</classifier>
+            <version>${cxf.activemq.artemis.version}</version>
+            <classifier>features</classifier>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>

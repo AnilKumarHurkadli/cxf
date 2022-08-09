@@ -32,23 +32,25 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.sse.InboundSseEvent;
-import javax.ws.rs.sse.SseEventSource;
-import javax.ws.rs.sse.SseEventSource.Builder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
+
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.sse.InboundSseEvent;
+import jakarta.ws.rs.sse.SseEventSource;
+import jakarta.ws.rs.sse.SseEventSource.Builder;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItems;
@@ -375,25 +377,27 @@ public abstract class AbstractSseTest extends AbstractSseBaseTest {
                 .put(null);
         assertThat(r.getStatus(), equalTo(204));
 
-        // Give server some time to finish up the sink
-        Thread.sleep(2000);
+        await()
+            .atMost(10, TimeUnit.SECONDS)
+            .pollDelay(1, TimeUnit.SECONDS)
+            .untilAsserted(() -> {
+                // Only two out of 4 messages should be delivered, others should be discarded
+                final BookBroadcasterStats stats =
+                    createWebClient("/rest/api/bookstore/client-closes-connection/stats", MediaType.APPLICATION_JSON)
+                        .get()
+                        .readEntity(BookBroadcasterStats.class);
 
-        // Only two out of 4 messages should be delivered, others should be discarded
-        final BookBroadcasterStats stats =
-            createWebClient("/rest/api/bookstore/client-closes-connection/stats", MediaType.APPLICATION_JSON)
-                .get()
-                .readEntity(BookBroadcasterStats.class);
+                // Tomcat will feedback through onError callback, others through onComplete
+                assertThat(stats.isErrored(), equalTo(supportsErrorPropagation()));
+                // The sink should be in closed state
+                assertThat(stats.isWasClosed(), equalTo(true));
+                // The onClose callback should be called
+                assertThat(stats.isClosed(), equalTo(true));
 
-        // Tomcat will feedback through onError callback, others through onComplete
-        assertThat(stats.isErrored(), equalTo(supportsErrorPropagation()));
-        // The sink should be in closed state
-        assertThat(stats.isWasClosed(), equalTo(true));
-        // The onClose callback should be called
-        assertThat(stats.isClosed(), equalTo(true));
-
-        // It is very hard to get the predictable match here, but at most
-        // 2 events could get through before the client's connection drop off
-        assertTrue(stats.getCompleted() == 2 || stats.getCompleted() == 1);
+                // It is very hard to get the predictable match here, but at most
+                // 2 events could get through before the client's connection drop off
+                assertTrue(stats.getCompleted() <= 3);
+            });
     }
 
     @Test

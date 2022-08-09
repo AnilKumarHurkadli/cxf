@@ -36,12 +36,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.ws.rs.client.InvocationCallback;
-import javax.ws.rs.core.Configuration;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
+import jakarta.ws.rs.client.InvocationCallback;
+import jakarta.ws.rs.core.Configuration;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.ReflectionUtil;
@@ -465,7 +464,7 @@ public class MicroProfileClientProxyImpl extends ClientProxyImpl {
             if (m != null) {
                 factory = CDIFacade.getInstanceFromCDI(factoryCls, m.getExchange().getBus())
                                    .map(this::mapInstance)
-                                   .orElse(factoryCls.newInstance());
+                                   .orElse(factoryCls.getDeclaredConstructor().newInstance());
                 ProviderInfo<ClientHeadersFactory> pi = clientHeaderFactories.computeIfAbsent(factoryCls, k -> {
                     return new ProviderInfo<ClientHeadersFactory>(factory, m.getExchange().getBus(), true);
                 });
@@ -473,7 +472,7 @@ public class MicroProfileClientProxyImpl extends ClientProxyImpl {
             } else {
                 factory = CDIFacade.getInstanceFromCDI(factoryCls)
                                    .map(this::mapInstance)
-                                   .orElse(factoryCls.newInstance());
+                                   .orElse(factoryCls.getDeclaredConstructor().newInstance());
             }
 
             MultivaluedMap<String, String> updatedHeaders = factory.update(getJaxrsHeaders(m), existingHeaders);

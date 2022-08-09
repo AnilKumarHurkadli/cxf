@@ -29,7 +29,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
@@ -162,6 +162,10 @@ public class Http2TestClient implements AutoCloseable {
         
         public ClientResponse get() throws Exception {
             return request(address, path, version, HttpMethod.GET, accept);
+        }
+        
+        public ClientResponse trace() throws Exception {
+            return request(address, path, version, HttpMethod.TRACE, accept);
         }
     }
     

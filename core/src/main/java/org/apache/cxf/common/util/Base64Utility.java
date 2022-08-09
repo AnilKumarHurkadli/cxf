@@ -161,7 +161,7 @@ public final class Base64Utility {
         byte[] ob = new byte[octetCount];
         int obcount = 0;
 
-        for (int i = o;  i < o + l && i < id.length;  i++) {
+        for (int i = o;  i < Math.addExact(o, l) && i < id.length;  i++) {
             if (id[i] == PAD
                 || id[i] < BDT.length
                 && BDT[id[i]] != Byte.MAX_VALUE) {
@@ -251,7 +251,7 @@ public final class Base64Utility {
     }
 
     public static String encode(byte[] id, boolean urlSafe) {
-        char[] cd = encodeChunk(id, 0, id.length);
+        char[] cd = encodeChunk(id, 0, id.length, urlSafe);
         return new String(cd, 0, cd.length);
     }
 
@@ -468,7 +468,7 @@ public final class Base64Utility {
     }
 
     public static boolean isValidBase64(int ch) {
-        return ch == PAD || BDT[ch] != Byte.MAX_VALUE;
+        return ch == PAD || ch >= 0 && ch < BDT.length && BDT[ch] != Byte.MAX_VALUE;
     }
 
 }

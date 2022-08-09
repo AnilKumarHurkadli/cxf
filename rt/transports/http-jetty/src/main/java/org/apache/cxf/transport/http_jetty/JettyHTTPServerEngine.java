@@ -32,15 +32,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.annotation.PostConstruct;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.cxf.Bus;
 import org.apache.cxf.common.i18n.Message;
 import org.apache.cxf.common.logging.LogUtils;
@@ -68,6 +68,7 @@ import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
@@ -445,7 +446,7 @@ public class JettyHTTPServerEngine implements ServerEngine, HttpServerEngineSupp
                     if (h instanceof DefaultHandler) {
                         defaultHandler = (DefaultHandler) h;
                     } else {
-                        if ((h instanceof SecurityHandler)
+                        if (h instanceof SecurityHandler
                             && ((SecurityHandler)h).getHandler() == null) {
                             //if h is SecurityHandler(such as ConstraintSecurityHandler)
                             //then it need be on top of JettyHTTPHandler
@@ -624,7 +625,7 @@ public class JettyHTTPServerEngine implements ServerEngine, HttpServerEngineSupp
     
     private Connector createConnector(String hosto, int porto, final Bus bus) {
         // now we just use the SelectChannelConnector as the default connector
-        SslContextFactory sslcf = null;
+        SslContextFactory.Server sslcf = null;
         if (tlsServerParameters != null) {
             sslcf = new SslContextFactory.Server() {
                 protected void doStart() throws Exception {
@@ -666,7 +667,7 @@ public class JettyHTTPServerEngine implements ServerEngine, HttpServerEngineSupp
         return result;
     }
 
-    AbstractConnector createConnectorJetty(SslContextFactory sslcf, String hosto, int porto, 
+    AbstractConnector createConnectorJetty(SslContextFactory.Server sslcf, String hosto, int porto, 
             int major, int minor, final Bus bus) {
         final AbstractConnector result;
         try {
@@ -675,11 +676,12 @@ public class JettyHTTPServerEngine implements ServerEngine, HttpServerEngineSupp
             HttpConnectionFactory httpFactory = new HttpConnectionFactory(httpConfig);
 
             Collection<ConnectionFactory> connectionFactories = new ArrayList<>();
+            connectionFactories.add(httpFactory);
 
             result = new org.eclipse.jetty.server.ServerConnector(server);
 
             if (tlsServerParameters != null) {
-                httpConfig.addCustomizer(new org.eclipse.jetty.server.SecureRequestCustomizer());
+                httpConfig.addCustomizer(new SecureRequestCustomizer(tlsServerParameters.isSniHostCheck()));
 
                 if (!isHttp2Enabled(bus)) {
                     final SslConnectionFactory scf = new SslConnectionFactory(sslcf, httpFactory.getProtocol());
@@ -701,7 +703,7 @@ public class JettyHTTPServerEngine implements ServerEngine, HttpServerEngineSupp
             } else if (isHttp2Enabled(bus)) {
                 connectionFactories.add(new HTTP2CServerConnectionFactory(httpConfig));
             }
-            connectionFactories.add(httpFactory);
+            
             result.setConnectionFactories(connectionFactories);
 
             if (getMaxIdleTime() > 0) {
@@ -791,8 +793,7 @@ public class JettyHTTPServerEngine implements ServerEngine, HttpServerEngineSupp
         }
     }
 
-    @SuppressWarnings("deprecation")
-    protected void setClientAuthentication(SslContextFactory con,
+    protected void setClientAuthentication(SslContextFactory.Server con,
                                            ClientAuthentication clientAuth) {
         con.setWantClientAuth(true);
         if (clientAuth != null) {
@@ -809,7 +810,7 @@ public class JettyHTTPServerEngine implements ServerEngine, HttpServerEngineSupp
      * of the JettySslConnector.
      */
     private void decorateCXFJettySslSocketConnector(
-            SslContextFactory con
+            SslContextFactory.Server con
     ) {
         setClientAuthentication(con,
                                 tlsServerParameters.getClientAuthentication());
@@ -1067,7 +1068,9 @@ public class JettyHTTPServerEngine implements ServerEngine, HttpServerEngineSupp
                 if (mBeanContainer != null) {
                     removeServerMBean();
                 }
-                server.destroy();
+                //After upgrade Jetty to 11.0.8, server.destroy() will clear all MBeans from container
+                //The old version doesn't behavior like this and this w
+                //server.destroy();
                 server = null;
             }
         }

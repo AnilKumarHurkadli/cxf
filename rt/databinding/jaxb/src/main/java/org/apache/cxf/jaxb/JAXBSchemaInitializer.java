@@ -36,18 +36,18 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.annotation.XmlAccessOrder;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorOrder;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlList;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.namespace.QName;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.annotation.XmlAccessOrder;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorOrder;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlList;
+import jakarta.xml.bind.annotation.XmlTransient;
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.apache.cxf.common.i18n.Message;
 import org.apache.cxf.common.jaxb.JAXBBeanInfo;
 import org.apache.cxf.common.jaxb.JAXBContextProxy;
@@ -541,7 +541,7 @@ class JAXBSchemaInitializer extends ServiceModelVisitor {
             //we want to return the right type for collections so if we get null
             //from the return type we check if it's ParameterizedType and get the
             //generic return type.
-            if ((type == null) && (f.getGenericType() instanceof ParameterizedType)) {
+            if ((type == null) && f.getGenericType() instanceof ParameterizedType) {
                 type = f.getGenericType();
             }
             if (generateGenericType(type)) {
@@ -560,7 +560,7 @@ class JAXBSchemaInitializer extends ServiceModelVisitor {
             // we want to return the right type for collections so if we get null
             // from the return type we check if it's ParameterizedType and get the
             // generic return type.
-            if ((type == null) && (m.getGenericReturnType() instanceof ParameterizedType)) {
+            if ((type == null) && m.getGenericReturnType() instanceof ParameterizedType) {
                 type = m.getGenericReturnType();
             }
 

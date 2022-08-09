@@ -26,7 +26,7 @@ under the License.
     <parent>
         <groupId>org.apache.cxf.samples</groupId>
         <artifactId>cxf-samples</artifactId>
-        <version>3.5.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
         <relativePath>../..</relativePath>
     </parent>
 
@@ -44,9 +44,9 @@ under the License.
                     <instructions>
                         <Bundle-SymbolicName>${project.groupId}.${project.artifactId};blueprint.aries.xml-validation:=false</Bundle-SymbolicName>
                         <Import-Package>
-                            javax.ws.rs,
-                            javax.ws.rs.core,
-                            javax.ws.rs.container,
+                            jakarta.ws.rs,
+                            jakarta.ws.rs.core,
+                            jakarta.ws.rs.container,
                             org.apache.cxf.jaxrs.provider,
                             org.apache.cxf.jaxrs.swagger,
                             org.osgi.service.blueprint,
@@ -56,7 +56,7 @@ under the License.
                             io.swagger.jaxrs.listing,
                             com.fasterxml.jackson.jaxrs.base,
                             com.fasterxml.jackson.jaxrs.json,
-                            javax.annotation;version="[1.2,2)",
+                            jakarta.annotation;version="[1.2,2)",
                             *
                         </Import-Package>
                         <Export-Package>
@@ -71,17 +71,17 @@ under the License.
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-transports-http</artifactId>
-            <version>3.5.0-SNAPSHOT</version>
+            <version>4.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-            <version>3.5.0-SNAPSHOT</version>
+            <version>4.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-service-description-swagger</artifactId>
-            <version>3.5.0-SNAPSHOT</version>
+            <version>4.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>jakarta.ws.rs</groupId>

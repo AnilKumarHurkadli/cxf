@@ -27,7 +27,7 @@
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.5.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
     <properties>
@@ -57,12 +57,12 @@
             org.springframework.core*;resolution:=optional;version="${cxf.osgi.spring.version}",
             org.springframework.util*;resolution:=optional;version="${cxf.osgi.spring.version}",
             org.objectweb.asm*;resolution:=optional;version="${cxf.osgi.asm.version}",
-            javax.activation;version="${cxf.osgi.javax.activation.version}",
-            javax.annotation;version="${cxf.osgi.javax.annotation.version}",
-            javax.xml.ws*;version="${cxf.osgi.javax.xml.ws.version}",
-            javax.xml.bind*;version="${cxf.osgi.javax.bind.version}",
-            javax.xml.stream*;version="${cxf.osgi.javax.stream.version}",
-            javax.validation*;resolution:=optional;version="${cxf.validation.api.package.version}", 
+            jakarta.activation;version="${cxf.osgi.jakarta.activation.version}",
+            jakarta.annotation;version="${cxf.osgi.jakarta.annotation.version}",
+            jakarta.xml.ws*;version="${cxf.osgi.jakarta.xml.ws.version}",
+            jakarta.xml.bind*;version="${cxf.osgi.jakarta.bind.version}",
+            jakarta.xml.stream*;version="${cxf.osgi.jakarta.stream.version}",
+            jakarta.validation*;resolution:=optional;version="${cxf.validation.api.package.version}", 
             org.apache.aries*;version="${cxf.aries.version.range}";resolution:=optional,
             org.apache.karaf.jaas.boot.principal;resolution:=optional,
             org.apache.commons.logging;resolution:=optional,
@@ -81,6 +81,15 @@
         </cxf.export.service>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.xml.ws</groupId>
+            <artifactId>jakarta.xml.ws-api</artifactId>
+            <optional>true</optional>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -167,8 +176,12 @@
             <artifactId>xmlschema-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.sun.mail</groupId>
-            <artifactId>jakarta.mail</artifactId>
+            <groupId>org.eclipse.angus</groupId>
+            <artifactId>angus-activation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.angus</groupId>
+            <artifactId>angus-mail</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -212,6 +225,11 @@
         <dependency>
             <groupId>xerces</groupId>
             <artifactId>xercesImpl</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.messaging.saaj</groupId>
+            <artifactId>saaj-impl</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

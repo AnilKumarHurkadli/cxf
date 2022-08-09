@@ -29,10 +29,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.PathSegment;
-
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.PathSegment;
 import org.apache.cxf.common.util.SystemPropertyAction;
 import org.apache.cxf.jaxrs.utils.HttpUtils;
 import org.apache.cxf.jaxrs.utils.JAXRSUtils;
@@ -179,7 +178,7 @@ public final class URITemplate {
     public boolean match(String uri, MultivaluedMap<String, String> templateVariableToValue) {
 
         if (uri == null) {
-            return (templateRegexPattern == null) ? true : false;
+            return templateRegexPattern == null;
         }
 
         if (templateRegexPattern == null) {

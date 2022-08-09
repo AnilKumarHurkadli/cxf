@@ -23,8 +23,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import javax.activation.DataSource;
-
+import jakarta.activation.DataSource;
+import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.helpers.IOUtils;
 import org.apache.cxf.io.CacheSizeExceededException;
 import org.apache.cxf.io.CachedOutputStream;
@@ -32,7 +32,7 @@ import org.apache.cxf.message.Message;
 
 public class AttachmentDataSource implements DataSource {
 
-    private final String ct;
+    private String ct;
     private CachedOutputStream cache;
     private InputStream ins;
     private DelegatingInputStream delegate;
@@ -76,6 +76,9 @@ public class AttachmentDataSource implements DataSource {
     }
 
     public String getContentType() {
+        if (StringUtils.isEmpty(ct)) {
+            ct = "application/octet-stream";
+        }
         return ct;
     }
 

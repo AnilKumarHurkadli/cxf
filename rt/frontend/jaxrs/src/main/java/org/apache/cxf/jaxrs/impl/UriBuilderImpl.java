@@ -33,12 +33,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.PathSegment;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriBuilderException;
-
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.PathSegment;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilderException;
 import org.apache.cxf.common.util.CollectionUtils;
 import org.apache.cxf.common.util.PropertyUtils;
 import org.apache.cxf.common.util.StringUtils;
@@ -124,7 +123,13 @@ public class UriBuilderImpl extends UriBuilder implements Cloneable {
 
         UriParts parts = doBuildUriParts(fromEncoded, encodePathSlash, false, values);
         try {
-            return buildURI(fromEncoded, parts.path, parts.query, parts.fragment);
+            final URI uri = buildURI(fromEncoded, parts.path, parts.query, parts.fragment);
+            
+            if (!Rfc3986UriValidator.validate(uri)) {
+                throw new UriBuilderException("[" + uri + "] is not a valid HTTP URL");
+            }
+            
+            return uri;
         } catch (URISyntaxException ex) {
             throw new UriBuilderException("URI can not be built", ex);
         }
@@ -379,7 +384,7 @@ public class UriBuilderImpl extends UriBuilder implements Cloneable {
         for (String var : uniqueVars) {
             boolean isPathEncVar = !isQuery && alreadyResolvedTsPathEnc.containsKey(var);
 
-            boolean isVarEncoded = isPathEncVar || alreadyResolvedTs.containsKey(var) ? false : true;
+            boolean isVarEncoded = !(isPathEncVar || alreadyResolvedTs.containsKey(var));
             Map<String, Object> resolved = isVarEncoded ? alreadyResolvedTsEnc
                 : isPathEncVar ? alreadyResolvedTsPathEnc : alreadyResolvedTs;
             Object oval = resolved.isEmpty() ? null : resolved.remove(var);

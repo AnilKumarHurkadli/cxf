@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.annotation.PreDestroy;
 import javax.cache.Cache;
 import javax.cache.CacheManager;
 import javax.cache.Caching;
@@ -39,12 +38,13 @@ import javax.cache.integration.CacheLoader;
 import javax.cache.integration.CacheWriter;
 import javax.cache.spi.CachingProvider;
 
+import jakarta.annotation.PreDestroy;
 import org.apache.cxf.Bus;
 import org.apache.cxf.feature.AbstractFeature;
 import org.apache.cxf.interceptor.InterceptorProvider;
 
 
-public class CXFCacheControlFeature extends AbstractFeature {
+public class CXFCacheControlFeature extends AbstractFeature implements AutoCloseable {
     
     private static final String BUS_PROVIDERS = "org.apache.cxf.jaxrs.bus.providers";
     private CachingProvider provider;
@@ -154,7 +154,7 @@ public class CXFCacheControlFeature extends AbstractFeature {
     @SuppressWarnings("unchecked")
     private static <T> T newInstance(final ClassLoader contextClassLoader, final String clazz, final Class<T> cast) {
         try {
-            return (T) contextClassLoader.loadClass(clazz).newInstance();
+            return (T) contextClassLoader.loadClass(clazz).getDeclaredConstructor().newInstance();
         } catch (final Exception e) {
             throw new IllegalArgumentException(e);
         }

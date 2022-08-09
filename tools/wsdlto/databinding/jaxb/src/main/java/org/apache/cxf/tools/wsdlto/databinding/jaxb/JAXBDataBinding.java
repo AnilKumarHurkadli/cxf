@@ -455,7 +455,7 @@ public class JAXBDataBinding implements DataBindingProfile {
                     cname = cname.substring(1);
                 }
                 try {
-                    defaultValues = (DefaultValueProvider)Class.forName(cname).newInstance();
+                    defaultValues = (DefaultValueProvider)Class.forName(cname).getDeclaredConstructor().newInstance();
                 } catch (Exception e) {
                     LOG.log(Level.SEVERE, e.getMessage());
                     throw new ToolException(e);
@@ -918,7 +918,7 @@ public class JAXBDataBinding implements DataBindingProfile {
                 pfx = DOMUtils.createNamespace(element, ToolConstants.NS_JAXB_BINDINGS);
             }
             element.setAttributeNS(ToolConstants.NS_JAXB_BINDINGS,
-                                   pfx + ":version", "2.0");
+                                   pfx + ":version", "3.0");
         }
         return element;
     }

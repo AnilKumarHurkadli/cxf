@@ -27,7 +27,7 @@
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.5.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
@@ -35,9 +35,9 @@
         <cxf.checkstyle.extension>-corba</cxf.checkstyle.extension>
         <cxf.osgi.import>
             org.objectweb.asm*;version="${cxf.osgi.asm.version}",
-            javax.xml.ws*;version="${cxf.osgi.javax.xml.ws.version}",
-            javax.annotation*;version="${cxf.osgi.javax.annotation.version}",
-            javax.xml.bind*;version="${cxf.osgi.javax.bind.version}",
+            jakarta.xml.ws*;version="${cxf.osgi.jakarta.xml.ws.version}",
+            jakarta.annotation*;version="${cxf.osgi.jakarta.annotation.version}",
+            jakarta.xml.bind*;version="${cxf.osgi.jakarta.bind.version}",
             org.apache.yoko.orb.*;resolution:=optional
         </cxf.osgi.import>
     </properties>
@@ -81,6 +81,24 @@
             <artifactId>spring-context</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.jacorb</groupId>
+            <artifactId>jacorb-omgapi</artifactId>
+            <version>${cxf.jacorb.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.spec.javax.rmi</groupId>
+            <artifactId>jboss-rmi-api_1.0_spec</artifactId>
+            <version>1.0.6.Final</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.jacorb</groupId>
+            <artifactId>jacorb</artifactId>
+            <version>${cxf.jacorb.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -122,28 +140,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>java9-plus</id>
-            <activation>
-                <jdk>[9,)</jdk>
-            </activation>
-            <dependencies>
-                <!-- This artifact needs to be included in compile scope since the corba module has been removed from jdk 11 -->
-                <dependency>
-                    <groupId>org.jacorb</groupId>
-                    <artifactId>jacorb-omgapi</artifactId>
-                    <version>${cxf.jacorb.version}</version>
-                    <optional>true</optional>
-                </dependency>
-                <dependency>
-                    <groupId>org.jboss.spec.javax.rmi</groupId>
-                    <artifactId>jboss-rmi-api_1.0_spec</artifactId>
-                    <version>1.0.6.Final</version>
-                    <optional>true</optional>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
 </project>

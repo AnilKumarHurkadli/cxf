@@ -26,14 +26,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Properties;
 
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.mail.Session;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.util.ByteArrayDataSource;
-
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.util.ByteArrayDataSource;
 import org.apache.cxf.helpers.IOUtils;
 import org.apache.cxf.message.Attachment;
 import org.apache.cxf.message.Message;
@@ -172,13 +171,27 @@ public class AttachmentSerializerTest {
         assertEquals("<test.xml>", part2.getHeader("Content-ID")[0]);
 
     }
-
+    
     @Test
     public void testMessageMTOM() throws Exception {
+        doTestMessageMTOM("test.xml", "<test.xml>");
+    }
+
+    @Test
+    public void testMessageMTOMCid() throws Exception {
+        doTestMessageMTOM("cid:http%3A%2F%2Fcxf.apache.org%2F", "<http://cxf.apache.org/>");
+    }
+
+    @Test
+    public void testMessageMTOMUrlDecoded() throws Exception {
+        doTestMessageMTOM("test+me.xml", "<test%2Bme.xml>");
+    }
+
+    private void doTestMessageMTOM(String contentId, String expectedContentId) throws Exception {
         MessageImpl msg = new MessageImpl();
 
         Collection<Attachment> atts = new ArrayList<>();
-        AttachmentImpl a = new AttachmentImpl("test.xml");
+        AttachmentImpl a = new AttachmentImpl(contentId);
 
         InputStream is = getClass().getResourceAsStream("my.wav");
         ByteArrayDataSource ds = new ByteArrayDataSource(is, "application/octet-stream");
@@ -235,7 +248,7 @@ public class AttachmentSerializerTest {
         MimeBodyPart part2 = (MimeBodyPart) multipart.getBodyPart(1);
         assertEquals("application/octet-stream", part2.getHeader("Content-Type")[0]);
         assertEquals("binary", part2.getHeader("Content-Transfer-Encoding")[0]);
-        assertEquals("<test.xml>", part2.getHeader("Content-ID")[0]);
+        assertEquals(expectedContentId, part2.getHeader("Content-ID")[0]);
 
     }
 

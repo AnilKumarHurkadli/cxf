@@ -20,33 +20,20 @@
 package org.apache.cxf.jaxrs.impl;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import java.net.URI;
+import java.nio.CharBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.GenericEntity;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Link;
-import javax.ws.rs.core.Link.Builder;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.NewCookie;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.Response.StatusType;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.Variant;
-import javax.ws.rs.core.Variant.VariantListBuilder;
-import javax.ws.rs.ext.RuntimeDelegate;
-import javax.ws.rs.ext.RuntimeDelegate.HeaderDelegate;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -54,7 +41,32 @@ import javax.xml.transform.dom.DOMResult;
 
 import org.w3c.dom.Document;
 
+import jakarta.activation.DataSource;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.client.ResponseProcessingException;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.GenericEntity;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Link;
+import jakarta.ws.rs.core.Link.Builder;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.NewCookie;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.StatusType;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.Variant;
+import jakarta.ws.rs.core.Variant.VariantListBuilder;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.Provider;
+import jakarta.ws.rs.ext.RuntimeDelegate;
+import jakarta.ws.rs.ext.RuntimeDelegate.HeaderDelegate;
 import org.apache.cxf.endpoint.Endpoint;
+import org.apache.cxf.helpers.IOUtils;
 import org.apache.cxf.jaxrs.provider.ProviderFactory;
 import org.apache.cxf.jaxrs.provider.ServerProviderFactory;
 import org.apache.cxf.jaxrs.resources.Book;
@@ -619,6 +631,48 @@ public class ResponseImplTest {
     }
     
     @Test
+    public void testReadInputStream() {
+        final String str = "ouch";
+
+        final ResponseImpl response = new ResponseImpl(500, str);
+        final Message outMessage = createMessage();
+        outMessage.put(Message.REQUEST_URI, "http://localhost");
+        response.setOutMessage(outMessage);
+
+        final MultivaluedMap<String, Object> headers = new MetadataMap<>();
+        headers.putSingle("Content-Type", "text/xml");
+        response.addMetadata(headers);
+
+        assertNotNull(response.readEntity(InputStream.class));
+        assertNotNull(response.getEntity());
+        
+        response.close();
+    }
+
+    @Test
+    public void testReadDataSource() throws IOException {
+        final String str = "ouch";
+        final ResponseImpl response = new ResponseImpl(500, str);
+        final Message outMessage = createMessage();
+        outMessage.put(Message.REQUEST_URI, "http://localhost");
+        response.setOutMessage(outMessage);
+
+        final MultivaluedMap<String, Object> headers = new MetadataMap<>();
+        headers.putSingle("Content-Type", "text/xml");
+        response.addMetadata(headers);
+
+        final DataSource ds = response.readEntity(DataSource.class);
+        assertNotNull(ds);
+        try (Reader reader = new InputStreamReader(ds.getInputStream(), StandardCharsets.UTF_8)) {
+            final CharBuffer buffer = CharBuffer.allocate(str.length());
+            reader.read(buffer);
+            assertEquals(str, buffer.flip().toString());
+        }
+        
+        response.close();
+    }
+    
+    @Test
     public void testReadEntityWithAnnotations() {
         final String str = "ouch";
 
@@ -635,6 +689,80 @@ public class ResponseImplTest {
         assertEquals(str, response.readEntity(String.class, annotations));
         assertThrows(IllegalStateException.class, 
             () -> response.readEntity(Reader.class, annotations));
+    }
+
+    @Test
+    public void testBufferAndReadInputStream() throws IOException {
+        final String str = "ouch";
+
+        try (ByteArrayInputStream out = new ByteArrayInputStream(str.getBytes())) {
+            final ResponseImpl response = new ResponseImpl(500, out);
+            final Message outMessage = createMessage();
+            outMessage.put(Message.REQUEST_URI, "http://localhost");
+            response.setOutMessage(outMessage);
+
+            final MultivaluedMap<String, Object> headers = new MetadataMap<>();
+            headers.putSingle("Content-Type", "text/rdf");
+            response.addMetadata(headers);
+            
+            assertTrue(response.bufferEntity());
+            assertNotNull(response.readEntity(InputStream.class));
+            assertNotNull(response.getEntity());
+            assertTrue(response.hasEntity());
+    
+            assertNotNull(response.readEntity(InputStream.class));
+            assertNotNull(response.getEntity());
+            assertTrue(response.hasEntity());
+    
+            response.close();
+        }
+    }
+    
+    @Test
+    public void testBufferAndReadInputStreamWithException() throws IOException {
+        final String str = "ouch";
+
+        try (ByteArrayInputStream out = new ByteArrayInputStream(str.getBytes())) {
+            final ResponseImpl response = new ResponseImpl(500, out);
+            final Message outMessage = createMessage();
+            outMessage.put(Message.REQUEST_URI, "http://localhost");
+            response.setOutMessage(outMessage);
+
+            ProviderFactory factory = ProviderFactory.getInstance(outMessage);
+            factory.registerUserProvider(new FaultyMessageBodyReader<InputStream>());
+
+            final MultivaluedMap<String, Object> headers = new MetadataMap<>();
+            headers.putSingle("Content-Type", "text/rdf");
+            response.addMetadata(headers);
+            
+            assertTrue(response.bufferEntity());
+            assertThrows(ResponseProcessingException.class, () -> response.readEntity(InputStream.class));
+            assertNotNull(response.getEntity());
+            assertTrue(response.hasEntity());
+    
+            assertThrows(ResponseProcessingException.class, () -> response.readEntity(InputStream.class));
+            assertNotNull(response.getEntity());
+            assertTrue(response.hasEntity());
+    
+            response.close();
+        }
+    }
+    
+    @Provider
+    @Consumes("text/rdf")
+    public static class FaultyMessageBodyReader<T> implements MessageBodyReader<T> {
+        @Override
+        public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+            return true;
+        }
+        
+        @Override
+        public T readFrom(Class<T> type, Type genericType, Annotation[] annotations, MediaType mediaType,
+                MultivaluedMap<String, String> httpHeaders, InputStream entityStream) 
+                    throws IOException, WebApplicationException {
+            IOUtils.consume(entityStream);
+            throw new IOException();
+        }
     }
     
     public static class StringBean {

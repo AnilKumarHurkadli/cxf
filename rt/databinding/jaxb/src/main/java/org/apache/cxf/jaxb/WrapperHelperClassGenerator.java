@@ -22,8 +22,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
-
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.Bus;
 import org.apache.cxf.common.spi.ClassGeneratorClassLoader;
 import org.apache.cxf.common.util.ASMHelper;
@@ -54,7 +53,7 @@ public final class WrapperHelperClassGenerator extends ClassGeneratorClassLoader
         Class<?> cls = findClass(StringUtils.slashesToPeriod(newClassName), wrapperType);
         while (cls != null) {
             try {
-                WrapperHelper helper = WrapperHelper.class.cast(cls.newInstance());
+                WrapperHelper helper = WrapperHelper.class.cast(cls.getDeclaredConstructor().newInstance());
                 if (!helper.getSignature().equals(computeSignature(setMethods, getMethods))) {
                     count++;
                     newClassName = wrapperType.getName() + "_WrapperTypeHelper" + count;
@@ -94,7 +93,7 @@ public final class WrapperHelperClassGenerator extends ClassGeneratorClassLoader
                 cw.visitEnd();
                 byte[] bt = cw.toByteArray();
                 Class<?> cl = loadClass(StringUtils.slashesToPeriod(newClassName), wrapperType, bt);
-                Object o = cl.newInstance();
+                Object o = cl.getDeclaredConstructor().newInstance();
                 return WrapperHelper.class.cast(o);
             }
         } catch (Throwable e) {
@@ -408,7 +407,7 @@ public final class WrapperHelperClassGenerator extends ClassGeneratorClassLoader
                     mv.visitJumpInsn(opCodes.IFNULL, jumpOverLabel);
 
                     mv.visitMethodInsn(opCodes.INVOKEVIRTUAL,
-                                       "javax/xml/bind/JAXBElement",
+                                       "jakarta/xml/bind/JAXBElement",
                                        "getValue", "()Ljava/lang/Object;", false);
                     mv.visitLabel(jumpOverLabel);
                 }

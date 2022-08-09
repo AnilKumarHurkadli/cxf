@@ -28,7 +28,7 @@
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.5.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
@@ -94,10 +94,9 @@
                 <configuration>
                     <instructions>
                         <Import-Package>
-                            javax.xml.bind*;version="${cxf.osgi.javax.bind.version}",
-                            javax.jws*;version="${cxf.osgi.jws.version}",
-                            javax.xml.ws*;version="${cxf.osgi.javax.xml.ws.version}",
-                            org.apache.cxf*;version="[3.0,4)",
+                            jakarta.xml.bind*;version="${cxf.osgi.jakarta.bind.version}",
+                            jakarta.jws*;version="${cxf.osgi.jws.version}",
+                            jakarta.xml.ws*;version="${cxf.osgi.jakarta.xml.ws.version}",
                             *
                         </Import-Package>
                         <Export-Package>

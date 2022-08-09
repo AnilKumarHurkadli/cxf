@@ -39,20 +39,21 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Configuration;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.ParamConverter;
-import javax.ws.rs.ext.ParamConverterProvider;
-import javax.ws.rs.ext.ReaderInterceptor;
-import javax.ws.rs.ext.WriterInterceptor;
-
+import jakarta.ws.rs.ConstrainedTo;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.RuntimeType;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.Configuration;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.ext.ContextResolver;
+import jakarta.ws.rs.ext.ExceptionMapper;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.MessageBodyWriter;
+import jakarta.ws.rs.ext.ParamConverter;
+import jakarta.ws.rs.ext.ParamConverterProvider;
+import jakarta.ws.rs.ext.ReaderInterceptor;
+import jakarta.ws.rs.ext.WriterInterceptor;
 import org.apache.cxf.Bus;
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.common.logging.LogUtils;
@@ -133,7 +134,7 @@ public abstract class ProviderFactory {
                             return c.newInstance(bus);
                         }
                     }
-                    return cls.newInstance();
+                    return cls.getDeclaredConstructor().newInstance();
                 } catch (Throwable ex) {
                     String message = "Problem with creating the provider " + className;
                     if (ex.getMessage() != null) {
@@ -230,7 +231,7 @@ public abstract class ProviderFactory {
                     return c.newInstance(bus);
                 }
             }
-            return cls.newInstance();
+            return cls.getDeclaredConstructor().newInstance();
         } catch (Throwable ex) {
             String message = "Problem with creating the default provider " + className;
             if (ex.getMessage() != null) {
@@ -623,13 +624,18 @@ public abstract class ProviderFactory {
     protected abstract void setProviders(boolean custom, boolean busGlobal, Object... providers);
 
     @SuppressWarnings("unchecked")
-    protected void setCommonProviders(List<ProviderInfo<? extends Object>> theProviders) {
+    protected void setCommonProviders(List<ProviderInfo<? extends Object>> theProviders, RuntimeType type) {
         List<ProviderInfo<ReaderInterceptor>> readInts =
             new LinkedList<>();
         List<ProviderInfo<WriterInterceptor>> writeInts =
             new LinkedList<>();
         for (ProviderInfo<? extends Object> provider : theProviders) {
             Class<?> providerCls = ClassHelper.getRealClass(bus, provider.getProvider());
+
+            // Check if provider is constrained to runtime type
+            if (!constrainedTo(providerCls, type)) {
+                continue;
+            }
 
             if (filterContractSupported(provider, providerCls, MessageBodyReader.class)) {
                 addProviderToList(messageReaders, provider);
@@ -1526,4 +1532,15 @@ public abstract class ProviderFactory {
         writerInterceptors = sortedWriterInterceptors;
     }
 
+    /**
+     * Checks the presence of {@link ConstrainedTo} annotation and, if present, applicability to 
+     * the runtime type.
+     * @param providerCls provider class
+     * @param type runtime type
+     * @return "true" if provider could be used with runtime type, "false" otherwise
+     */
+    protected static boolean constrainedTo(Class<?> providerCls, RuntimeType type) {
+        final ConstrainedTo constrained = AnnotationUtils.getClassAnnotation(providerCls, ConstrainedTo.class);
+        return constrained == null || constrained.value() == type;
+    }
 }

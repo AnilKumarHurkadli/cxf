@@ -21,9 +21,8 @@ package org.apache.cxf.microprofile.client;
 
 import java.util.List;
 
-import javax.ws.rs.core.Feature;
-import javax.ws.rs.core.FeatureContext;
-
+import jakarta.ws.rs.core.Feature;
+import jakarta.ws.rs.core.FeatureContext;
 import org.apache.cxf.jaxrs.client.spec.TLSConfiguration;
 import org.apache.cxf.microprofile.client.mock.MyClient;
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
@@ -33,8 +32,8 @@ import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class MicroProfileClientFactoryBeanTest {

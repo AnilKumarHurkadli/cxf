@@ -23,8 +23,8 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
 
+import jakarta.xml.ws.BindingProvider;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.binding.soap.SoapBindingConstants;
@@ -89,7 +89,7 @@ public class WSSCTest extends AbstractBusClientServerTestBase {
         }
         public String toString() {
             return prefix + ":" 
-                + port + ((port == STAX_PORT || port == STAX_PORT2) ? "(stax)" : "") 
+                + port + ((STAX_PORT.equals(port) || STAX_PORT2.equals(port)) ? "(stax)" : "") 
                 + ":" + (streaming ? "streaming" : "dom")
                 + (clearAction ? "/no SOAPAction" : "");
         }

@@ -46,15 +46,14 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
-import javax.activation.CommandInfo;
-import javax.activation.CommandMap;
-import javax.activation.DataContentHandler;
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.activation.FileDataSource;
-import javax.activation.MailcapCommandMap;
-import javax.activation.URLDataSource;
-
+import jakarta.activation.CommandInfo;
+import jakarta.activation.CommandMap;
+import jakarta.activation.DataContentHandler;
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
+import jakarta.activation.FileDataSource;
+import jakarta.activation.MailcapCommandMap;
+import jakarta.activation.URLDataSource;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.helpers.FileUtils;
@@ -357,8 +356,9 @@ public final class AttachmentUtil {
             if (id.startsWith("cid:")) {
                 id = id.substring(4);
             }
-            // urldecode. Is this bad even without cid:? What does decode do with malformed %-signs, anyhow?
+
             try {
+                // urldecode
                 id = URLDecoder.decode(id, StandardCharsets.UTF_8.name());
             } catch (UnsupportedEncodingException e) {
                 //ignore, keep id as is

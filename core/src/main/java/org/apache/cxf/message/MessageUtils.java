@@ -21,6 +21,8 @@ package org.apache.cxf.message;
 
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -28,6 +30,7 @@ import org.w3c.dom.Node;
 
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.PropertyUtils;
+import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.service.invoker.MethodDispatcher;
 import org.apache.cxf.service.model.BindingOperationInfo;
 
@@ -153,6 +156,26 @@ public final class MessageUtils {
         return defaultValue;
     }
 
+    public static Collection<Integer> getContextualIntegers(Message m, String key, Collection<Integer> defaultValue) {
+        if (m != null) {
+            Object o = m.getContextualProperty(key);
+            if (o instanceof String) {
+                Collection<Integer> intValues = new ArrayList<>();
+                for (String value : ((String) o).split(",")) {
+                    try {
+                        if (!StringUtils.isEmpty(value)) {
+                            intValues.add(Integer.parseInt(value.trim()));
+                        }
+                    } catch (NumberFormatException ex) {
+                        LOG.warning("Incorrect integer value of " + value + " specified for: " + key);
+                    }
+                }
+                return intValues;
+            }
+        }
+        return defaultValue;
+    }
+
     public static int getContextualInteger(Message m, String key, int defaultValue) {
         if (m != null) {
             Object o = m.getContextualProperty(key);
@@ -188,7 +211,7 @@ public final class MessageUtils {
         return m != null && m.getContent(Node.class) != null;
         /*
         for (Class c : m.getContentFormats()) {
-            if (c.equals(Node.class) || "javax.xml.soap.SOAPMessage".equals(c.getName())) {
+            if (c.equals(Node.class) || "jakarta.xml.soap.SOAPMessage".equals(c.getName())) {
                 return true;
             }
         }

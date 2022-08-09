@@ -23,10 +23,9 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import org.springframework.stereotype.Component;
 
 import io.swagger.v3.oas.annotations.Parameter;
@@ -62,5 +61,10 @@ public class Library implements LibraryApi {
     @Override
     public Catalog catalog() {
         return new Catalog();
+    }
+    
+    @Override
+    public Response traceBooks() {
+        return Response.status(Status.NOT_ACCEPTABLE).build();
     }
 }

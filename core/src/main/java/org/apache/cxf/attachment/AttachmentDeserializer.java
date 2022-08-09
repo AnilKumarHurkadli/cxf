@@ -35,8 +35,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.activation.DataSource;
-
+import jakarta.activation.DataSource;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.common.util.SystemPropertyAction;
@@ -292,7 +291,9 @@ public class AttachmentDeserializer {
             value = pushbackInStream.read();
             if ((byte) value == boundary[0]) {
                 int boundaryIndex = 0;
-                while (value != -1 && (boundaryIndex < boundary.length) && ((byte) value == boundary[boundaryIndex])) {
+                while (value != -1 
+                    && boundaryIndex < boundary.length 
+                    && (byte)value == boundary[boundaryIndex]) {
 
                     value = pushbackInStream.read();
                     if (value == -1) {

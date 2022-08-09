@@ -19,8 +19,7 @@
 
 package org.apache.cxf.systest.http2.netty;
 
-import javax.ws.rs.core.Response;
-
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.configuration.jsse.TLSClientParameters;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.systest.http2.netty.Http2TestClient.ClientResponse;
@@ -31,8 +30,8 @@ import org.apache.cxf.transport.https.InsecureTrustManager;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 abstract class AbstractNettyClientServerHttp2Test extends AbstractBusClientServerTestBase {
     @Test
@@ -47,6 +46,21 @@ abstract class AbstractNettyClientServerHttp2Test extends AbstractBusClientServe
             .get();
         
         assertThat(response.getResponseCode(), equalTo(404));
+        assertThat(response.getProtocol(), equalTo("HTTP/2.0"));
+    }
+    
+    @Test
+    public void testBookTraceWithHttp2() throws Exception {
+        final Http2TestClient client = new Http2TestClient(isSecure());
+        
+        final ClientResponse response = client
+            .request(getAddress())
+            .accept("text/plain")
+            .path(getContext() + "/web/bookstore/trace")
+            .http2()
+            .trace();
+        
+        assertThat(response.getResponseCode(), equalTo(406));
         assertThat(response.getProtocol(), equalTo("HTTP/2.0"));
     }
     
@@ -85,8 +99,24 @@ abstract class AbstractNettyClientServerHttp2Test extends AbstractBusClientServe
 
     @Test
     public void testBookWithHttp() throws Exception {
+        final WebClient wc = createWebClient("/web/bookstore/booknames");
+        try (Response resp = wc.get()) {
+            assertThat(resp.getStatus(), equalTo(200));
+            assertEquals("CXF in Action", resp.readEntity(String.class));
+        }
+    }
+
+    @Test
+    public void testBookTraceWithHttp() throws Exception {
+        final WebClient wc = createWebClient("/web/bookstore/trace");
+        try (Response response = wc.invoke("TRACE", null)) {
+            assertThat(response.getStatus(), equalTo(406));
+        }        
+    }
+
+    private WebClient createWebClient(final String path) {
         final WebClient wc = WebClient
-            .create(getAddress() + getContext() + "/web/bookstore/booknames")
+            .create(getAddress() + getContext() + path)
             .accept("text/plain");
         
         if (isSecure()) {
@@ -103,10 +133,7 @@ abstract class AbstractNettyClientServerHttp2Test extends AbstractBusClientServe
             params.setDisableCNCheck(true);
         }
         
-        try (Response resp = wc.get()) {
-            assertThat(resp.getStatus(), equalTo(200));
-            assertEquals("CXF in Action", resp.readEntity(String.class));
-        }
+        return wc;
     }
 
     protected abstract String getAddress();

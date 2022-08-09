@@ -20,11 +20,10 @@ package org.apache.cxf.systest.jaxrs.description;
 
 import java.util.Arrays;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.Bus;
 import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
 import org.apache.cxf.jaxrs.client.WebClient;
@@ -98,6 +97,22 @@ public class SwaggerUiConfigurationTest extends AbstractClientServerTestBase {
         WebClient uiClient = WebClient
             .create("http://localhost:" + getPort() + "/api-docs")
             .query("url", "/swagger.json")
+            .accept("*/*");
+
+        try (Response response = uiClient.get()) {
+            String html = response.readEntity(String.class);
+            assertThat(html, containsString("<!-- HTML"));
+            assertThat(response.getMediaType(), equalTo(MediaType.TEXT_HTML_TYPE));
+        }
+    }
+
+    @Test
+    public void testUiRootResourcePicksUrlFromConfigurationOnly() {
+        // Test that Swagger UI URL is picked from configuration only and 
+        // never from the query string (when query config is disabled).
+        WebClient uiClient = WebClient
+            .create("http://localhost:" + getPort() + "/api-docs")
+            .query("url", "http://malicious.site/swagger.json")
             .accept("*/*");
 
         try (Response response = uiClient.get()) {

@@ -62,7 +62,7 @@ import java.nio.charset.CodingErrorAction;
  * in the design of the code. This class is typically used in situations where an existing
  * API only accepts an {@link InputStream}, but where the most natural way to produce the data
  * is as a character stream, i.e. by providing a {@link Reader} instance. An example of a situation
- * where this problem may appear is when implementing the {@link javax.activation.DataSource}
+ * where this problem may appear is when implementing the {@link jakarta.activation.DataSource}
  * interface from the Java Activation Framework.
  * <p>
  * Given the fact that the {@link Reader} class doesn't provide any way to predict whether the next
@@ -223,7 +223,7 @@ public class ReaderInputStream extends InputStream {
         if (b == null) {
             throw new NullPointerException("Byte array must not be null");
         }
-        if (len < 0 || off < 0 || (off + len) > b.length) {
+        if (len < 0 || off < 0 || Math.addExact(off, len) > b.length) {
             throw new IndexOutOfBoundsException("Array Size=" + b.length
                     + ", offset=" + off + ", length=" + len);
         }

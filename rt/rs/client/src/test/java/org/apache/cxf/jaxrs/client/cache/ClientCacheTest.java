@@ -23,17 +23,16 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Collections;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import javax.xml.bind.annotation.XmlRootElement;
-
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Invocation;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.CacheControl;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.endpoint.Server;
@@ -74,8 +73,7 @@ public class ClientCacheTest {
 
     @Test
     public void testGetTimeString() {
-        CacheControlFeature feature = new CacheControlFeature();
-        try {
+        try (CacheControlFeature feature = new CacheControlFeature()) {
             final WebTarget base = ClientBuilder.newBuilder().register(feature).build().target(ADDRESS);
             final Invocation.Builder cached = base.request("text/plain").header(HttpHeaders.CACHE_CONTROL, "public");
             final Response r = cached.get();
@@ -83,15 +81,12 @@ public class ClientCacheTest {
             final String r1 = r.readEntity(String.class);
             waitABit();
             assertEquals(r1, cached.get().readEntity(String.class));
-        } finally {
-            feature.close();
         }
     }
 
     @Test
     public void testGetTimeStringUsingClientFactory() {
-        CacheControlFeature feature = new CacheControlFeature();
-        try {
+        try (CacheControlFeature feature = new CacheControlFeature()) {
             JAXRSClientFactoryBean bean = new JAXRSClientFactoryBean();
             bean.setAddress(ADDRESS);
             bean.setProviders(Collections.singletonList(feature));
@@ -106,15 +101,12 @@ public class ClientCacheTest {
             final String r1 = r.readEntity(String.class);
             waitABit();
             assertEquals(r1, cached.get().readEntity(String.class));
-        } finally {
-            feature.close();
         }
     }
 
     @Test
     public void testGetTimeStringAsInputStream() throws Exception {
-        CacheControlFeature feature = new CacheControlFeature();
-        try {
+        try (CacheControlFeature feature = new CacheControlFeature()) {
             final WebTarget base = ClientBuilder.newBuilder().register(feature).build().target(ADDRESS);
             final Invocation.Builder cached = base.request("text/plain").header(HttpHeaders.CACHE_CONTROL, "public");
             final Response r = cached.get();
@@ -125,15 +117,12 @@ public class ClientCacheTest {
             is = cached.get().readEntity(InputStream.class);
             final String r2 = IOUtils.readStringFromStream(is);
             assertEquals(r1, r2);
-        } finally {
-            feature.close();
         }
     }
 
     @Test
     public void testGetTimeStringAsInputStreamAndString() throws Exception {
-        CacheControlFeature feature = new CacheControlFeature();
-        try {
+        try (CacheControlFeature feature = new CacheControlFeature()) {
             feature.setCacheResponseInputStream(true);
             final WebTarget base = ClientBuilder.newBuilder().register(feature).build().target(ADDRESS);
             final Invocation.Builder cached = base.request("text/plain").header(HttpHeaders.CACHE_CONTROL, "public");
@@ -145,14 +134,11 @@ public class ClientCacheTest {
             // CassCastException would occur without a cached stream support
             final String r2 = cached.get().readEntity(String.class);
             assertEquals(r1, r2);
-        } finally {
-            feature.close();
         }
     }
     @Test
     public void testGetTimeStringAsStringAndInputStream() throws Exception {
-        CacheControlFeature feature = new CacheControlFeature();
-        try {
+        try (CacheControlFeature feature = new CacheControlFeature()) {
             feature.setCacheResponseInputStream(true);
             final WebTarget base = ClientBuilder.newBuilder().register(feature).build().target(ADDRESS);
             final Invocation.Builder cached = base.request("text/plain").header(HttpHeaders.CACHE_CONTROL, "public");
@@ -164,15 +150,12 @@ public class ClientCacheTest {
             InputStream is = cached.get().readEntity(InputStream.class);
             final String r2 = IOUtils.readStringFromStream(is);
             assertEquals(r1, r2);
-        } finally {
-            feature.close();
         }
     }
     
     @Test
     public void testGetTimeStringAsStringAndInputStreamWithJAXRSClientFactoryBean() throws Exception {
-        CXFCacheControlFeature feature = new CXFCacheControlFeature(true);
-        try {
+        try (CXFCacheControlFeature feature = new CXFCacheControlFeature(true)) {
             WebClient client = createClient(feature);
             final Response r = client.get();
             assertEquals(Response.Status.OK.getStatusCode(), r.getStatus());
@@ -181,15 +164,12 @@ public class ClientCacheTest {
             InputStream is = client.get(InputStream.class);
             final String r2 = IOUtils.readStringFromStream(is);
             assertEquals(r1, r2);
-        } finally {
-            feature.close();
         }
     }
 
     @Test
     public void testGetJaxbBookCache() {
-        CacheControlFeature feature = new CacheControlFeature();
-        try {
+        try (CacheControlFeature feature = new CacheControlFeature()) {
             final WebTarget base = ClientBuilder.newBuilder().register(feature).build().target(ADDRESS);
             final Invocation.Builder cached =
                 setAsLocal(base.request("application/xml")).header(HttpHeaders.CACHE_CONTROL, "public");
@@ -200,8 +180,6 @@ public class ClientCacheTest {
             assertNotNull(b1.getId());
             waitABit();
             assertEquals(b1, cached.get().readEntity(Book.class));
-        } finally {
-            feature.close();
         }
     }
     
@@ -209,8 +187,7 @@ public class ClientCacheTest {
     @Test
     public void testGetJaxbBookCacheByValue() {
         // org.apache.cxf.jaxrs.client.cache.CacheControlFeature.storeByValue
-        CacheControlFeature feature = new CacheControlFeature();
-        try {
+        try (CacheControlFeature feature = new CacheControlFeature()) {
             final WebTarget base = ClientBuilder.newBuilder()
                 .property("org.apache.cxf.jaxrs.client.cache.CacheControlFeature.storeByValue", "true")
                 .register(feature).build().target(ADDRESS);
@@ -223,8 +200,6 @@ public class ClientCacheTest {
             assertNotNull(b1.getId());
             waitABit();
             assertEquals(b1, cached.get().readEntity(Book.class));
-        } finally {
-            feature.close();
         }
     }
 

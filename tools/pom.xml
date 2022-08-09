@@ -27,14 +27,15 @@
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf</artifactId>
-        <version>3.5.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
     <modules>
         <module>common</module>
         <module>validator</module>
         <module>wsdlto</module>
         <module>javato</module>
-        <module>wadlto</module>
+        <!--TODO: enable wadlto module after jakarta jaxb2-basics is ready-->
+        <!--module>wadlto</module-->
         <module>corba</module>
     </modules>
 </project>

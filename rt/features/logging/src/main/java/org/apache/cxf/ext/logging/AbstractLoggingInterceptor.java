@@ -54,7 +54,7 @@ public abstract class AbstractLoggingInterceptor extends AbstractPhaseIntercepto
 
     protected final MaskSensitiveHelper maskSensitiveHelper = new MaskSensitiveHelper();
 
-    protected Set<String> sensitiveProtocolHeaderNames = new HashSet();
+    protected Set<String> sensitiveProtocolHeaderNames = new HashSet<>();
 
     public AbstractLoggingInterceptor(String phase, LogEventSender sender) {
         super(phase);
@@ -86,10 +86,19 @@ public abstract class AbstractLoggingInterceptor extends AbstractPhaseIntercepto
         return threshold;
     }
 
+    public void setSensitiveElementNames(final Set<String> sensitiveElementNames) {
+        maskSensitiveHelper.setSensitiveElementNames(sensitiveElementNames);
+    }
+    
     public void addSensitiveElementNames(final Set<String> sensitiveElementNames) {
         maskSensitiveHelper.addSensitiveElementNames(sensitiveElementNames);
     }
 
+    public void setSensitiveProtocolHeaderNames(final Set<String> protocolHeaderNames) {
+        this.sensitiveProtocolHeaderNames.clear();
+        addSensitiveProtocolHeaderNames(protocolHeaderNames);
+    }
+    
     public void addSensitiveProtocolHeaderNames(final Set<String> protocolHeaderNames) {
         this.sensitiveProtocolHeaderNames.addAll(protocolHeaderNames);
     }

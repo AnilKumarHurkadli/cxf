@@ -21,9 +21,9 @@ package org.apache.cxf.systest.sts.claims;
 import java.net.URL;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Service;
 
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Service;
 import org.apache.cxf.systest.sts.common.SecurityTestUtil;
 import org.apache.cxf.systest.sts.common.TestParam;
 import org.apache.cxf.systest.sts.deployment.DoubleItServer;
@@ -274,6 +274,32 @@ public class ClaimsTest extends AbstractBusClientServerTestBase {
         QName portQName = new QName(NAMESPACE, "DoubleItTransportSAML2ClaimsPort");
         DoubleItPortType transportClaimsPort =
             service.getPort(portQName, DoubleItPortType.class);
+
+        updateAddressPort(transportClaimsPort, test.getPort());
+
+        SecurityTestUtil.updateSTSPort((BindingProvider)transportClaimsPort, test.getStsPort());
+
+        if (test.isStreaming()) {
+            SecurityTestUtil.enableStreaming(transportClaimsPort);
+        }
+
+        doubleIt(transportClaimsPort, 25);
+
+        ((java.io.Closeable)transportClaimsPort).close();
+    }
+
+    // In this test, the WSDL the client is using has no Claims Element (however the service
+    // is using a WSDL that requires Claims). A CallbackHandler is used to send the Claims
+    // Element to the STS.
+    @org.junit.Test
+    public void testSaml2ClaimsCallbackHandler2() throws Exception {
+        createBus(getClass().getResource("cxf-client-cbhandler2.xml").toString());
+
+        URL wsdl = ClaimsTest.class.getResource("DoubleItNoClaims.wsdl");
+        Service service = Service.create(wsdl, SERVICE_QNAME);
+        QName portQName = new QName(NAMESPACE, "DoubleItTransportSAML2ClaimsPort");
+        DoubleItPortType transportClaimsPort =
+                service.getPort(portQName, DoubleItPortType.class);
 
         updateAddressPort(transportClaimsPort, test.getPort());
 

@@ -26,15 +26,15 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamWriter;
-import javax.xml.ws.WebFault;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.ws.WebFault;
 import org.apache.cxf.binding.corba.CorbaBindingException;
 import org.apache.cxf.binding.corba.CorbaDestination;
 import org.apache.cxf.binding.corba.CorbaMessage;
@@ -97,7 +97,7 @@ public class CorbaStreamFaultOutInterceptor extends AbstractPhaseInterceptor<Mes
         // JCGS. If the cause is not available I can only continue if the exception
         //       is a Fault instance and contains a detail object.
         if (ex.getCause() == null) {
-            if ((ex instanceof Fault) && (((Fault)ex).getDetail() != null)) {
+            if (ex instanceof Fault && (((Fault)ex).getDetail() != null)) {
                 faultEx = (Fault) ex;
             } else {
                 throw new CorbaBindingException(ex);
@@ -252,7 +252,7 @@ public class CorbaStreamFaultOutInterceptor extends AbstractPhaseInterceptor<Mes
         // one has not been created on the servant side which throws the UserException.
         if (fault == null) {
             Class<?> faultClass = faultMethod.getReturnType();
-            fault = faultClass.newInstance();
+            fault = faultClass.getDeclaredConstructor().newInstance();
         }
 
         CorbaFaultStreamWriter faultWriter = new CorbaFaultStreamWriter(orb, exType,
