@@ -122,7 +122,6 @@ public class BookStore {
         return createBook(book);
     }
 
-
     @POST
     @Path("/books")
     public Response createBook(Book book) {
